@@ -123,7 +123,7 @@
 
 ## 读多写少
 
-CopyOnWrite
+#### CopyOnWrite
 
 > volatile修饰存储对象
 > 使用重入锁，生成其副本对象进行写操作，不阻塞读操作，通过volatile即时同步变动
