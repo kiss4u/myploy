@@ -365,15 +365,29 @@ public class MainApp {
 
 ## AOP
 
+面向切面编程，通过对目标类织入切面，实现对其功能增强
+
+### 运行期
+
+> 常见的，如动态代理
+
+### 编译期间
+
+> 需要特殊的编译器
+
+### 类加载期间- LoadTimeWeaving
+
+> 在类的class文件未被jvm加载之前，通过自定义的类加载器或文件转换器，将功能织入目标类的class文件，再交给jvm加载
+
 |               |                                    |
 | ------------- | ---------------------------------- |
 | aspect        | 一组横切需求的执行方法             |
-| join point    |                                    |
-| advice        | AOP切面具体执行的方法              |
+| joinpoint     | 插入切面的点                       |
+| advice        | 具体执行的增强处理                 |
 | pointcut      | 切入一个类，所有方法都按需求走通知 |
 | introduction  |                                    |
 | target object |                                    |
-| weaving       |                                    |
+| weaving       | 增强添加到目标对象                 |
 
 通知类型
 

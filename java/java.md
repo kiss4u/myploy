@@ -198,6 +198,25 @@ new Thread(()->{
 }).start();
 ```
 
+#### FutureTask
+
+```java
+public static class MyTask implements Callable<String> {
+  @Override
+  public String call() throw Exception {
+    // ...
+    return "";
+  }
+}
+
+public String doTask() {
+  FutureTask<String> futureTask = new FutureTask<>(new MyTask());
+  new Thread(ft).start(futureTask);
+  // ...
+  return futureTask.get();
+}
+```
+
 ### Thread调用start()和run()有什么区别？
 
 >run()不启动新线程
@@ -321,13 +340,17 @@ TreeMap红黑树存储，在非多线程的情况下，使用TreeMap。
 >
 >为什么要用ThreadLocalRandom？
 >
->首先Random的随机种子，多线程可能获取到相同的，为了防止出现重复，随机种子使用Atomic原子对象，CAS机制保证种子的不同，会出现并发的性能问题。
+>首先Random的随机种子，多线程可能获取到相同的，为了防止出现重复，随机种子使用Atomic原子对象，CAS机制保证种子的不同，高并发下会存在性能问题，使用ThreadLocalRandom提高效率
 
 ### LockSupport、AQS
 
 >LockSupport用来挂起取回线程，锁实现的工具类，锁要实现AQS接口
 >
 >AQS内部是Node形式的双向链表，获取到锁可以建多个condition，condition也是Node形式链表，存放被挂起的线程
+
+### Synchronized
+
+判断对象头中的mark位是否为1偏向锁，如果是升级为轻量级锁，开始尝试cas获取，未取到进入阻塞状态，升级为重量级锁
 
 ### 并发锁
 
