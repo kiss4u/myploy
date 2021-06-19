@@ -4,20 +4,33 @@
 
 ## 控制反转和依赖注入
 
-> 控制反转（IoC）对象的创建和销毁都交由框架负则，控制对象生存周期的不再是引用它的对象，而是spring框架。
+> 控制反转（IoC）对象的创建和销毁都交由框架负责，控制对象生存周期的不再是引用它的对象，而是spring框架。IOC容器本质上是一个map，存放的是各种对象；
 >
 > 依赖注入（DI）：在系统运行中，动态的向某个对象提供他所需要的的对象，向构造函数传递参数，或者通过使用 setter 方法。（通过反射实现）
 
 ## IoC容器
 
+### IOC的好处
+
+> 减少代码量
+>
+> 减少入侵松耦合
+>
+> 支持即时实例化及懒加载
+
 ### 容器类型
 
-| 类型               |                                         |
-| ------------------ | --------------------------------------- |
-| BeanFactory        | 适合轻量级应用                          |
-| ApplicationContext | 是 BeanFactory 的子接口，功能更强大一些 |
+| 类型                  |                                         |                                |
+| --------------------- | --------------------------------------- | ------------------------------ |
+| BeanFactory           | 适合轻量级应用                          | 调用getBean方法时才实例化bean  |
+| ApplicationContext    | 是 BeanFactory 的子接口，功能更强大一些 | 初始化时会实例化所有的单例bean |
+| WebApplicationContext | 专门为web应用准备的                     |                                |
 
-### Bean的作用域
+### Bean的作用域（scope）
+
+> ```text
+> @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+> ```
 
 | 作用域         | 说明                                                         | 备注                            |
 | -------------- | ------------------------------------------------------------ | ------------------------------- |
@@ -27,40 +40,7 @@
 | session        | 同一个http session共享一个bean，不同session使用不同的bean    | 仅适用WebApplicationContext环境 |
 | global session |                                                              | 仅适用WebApplicationContext环境 |
 
-单独配置
-```xml
-<bean id="helloWorld" class="com.my.HelloWorld" scope="singleton" init-method="init" destroy-method="destroy">
-	<property name="message" value="Hello World!"/>
-</bean>
-```
-通用配置
-
-```xml
-<beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
-    default-init-method="init" 
-    default-destroy-method="destroy">
-```
-
 ### Bean的生命周期
-
-1、实例化
-
-2、设置对象属性（依赖注入）
-
-3、初始化 init-method
-
-4、使用
-
-5、销毁 destory-method
-
-```xml
-<bean id="helloWorld" class="com.my.HelloWorld" init-method="init" destroy-method="destroy">
-	<property name="message" value="Hello World!"/>
-</bean>
-```
 
 > 1、根据配置文件实例化bean
 >
@@ -75,6 +55,8 @@
 > 6、
 
 ![img](https://images2015.cnblogs.com/blog/1071792/201703/1071792-20170319001837916-2023744929.png)
+
+![img](https://img2018.cnblogs.com/blog/842514/201906/842514-20190611220552139-1446928813.png)
 
 ### 后置处理器
 
@@ -106,39 +88,6 @@ public class ProcessorOne implements BeanPostProcessor, Ordered {
 }
 ```
 
-### 定义继承
-
-子bean继承父bean的属性（子类中也要定义message1变量，否则xml会提示异常）
-
-```xml
-<bean id="helloWorld" class="com.my.HelloWorld">
-    <property name="message1" value="Hello World 1"/>
-    <property name="message2" value="Hello World 2"/>
-</bean>
-
-<bean id="helloChina" class="com.my.HelloChina" parent="helloWorld">
-    <property name="message2" value="Hello China 1"/>
-    <property name="message3" value="Hello China 2"/>
-</bean>
-```
-
-#### bean模板
-
-父bean被定义为抽象，不能被实例化
-
-```xml
- <bean id="teamplate" abstract="true">
-    <property name="message1" value="Hello World 1"/>
-    <property name="message2" value="Hello World 2"/>
-    <property name="message3" value="Hello World 3"/>
-</bean>
-
-<bean id="helloChina" class="com.my.HelloChina" parent="teamplate">
-    <property name="message2" value="Hello China 1"/>
-    <property name="message3" value="Hello China 2"/>
-</bean>
-```
-
 ## 依赖注入
 
 ### 注入方式
@@ -153,38 +102,6 @@ public class TestMy {
 }
 ```
 
-按顺序
-
-```xml
-<beans>
-   <bean id="TestBean" class="com.my.TestMy">
-      <constructor-arg ref="test1"/>
-      <constructor-arg ref="test2"/>
-   </bean>
-
-   <bean id="test1" class="com.my.Test1"/>
-   <bean id="test2" class="com.my.Test2"/>
-</beans>
-```
-按类型
-```xml
-<beans>
-   <bean id="exampleBean" class="examples.ExampleBean">
-      <constructor-arg type="int" value="111"/>
-      <constructor-arg type="java.lang.String" value="hello"/>
-   </bean>
-</beans>
-```
-按位置
-```xml
-<beans>
-   <bean id="exampleBean" class="examples.ExampleBean">
-      <constructor-arg index="0" value="111"/>
-      <constructor-arg index="1" value="222"/>
-   </bean>
-</beans>
-```
-
 #### setter方法
 
 ```java
@@ -194,119 +111,6 @@ public class TestMy {
       this.test1 = test1;
    }
 }
-```
-
-
-
-```xml
-<beans>
-   <bean id="TestBean" class="com.my.TestMy">
-      <property name="test1" ref="test1"/>
-   </bean>
-
-   <bean id="test1" class="com.my.Test1"/>
-</beans>
-```
-
-```xml
-<beans>
-   <bean id="TestBean" class="com.my.TestMy">
-      <property name="test1">
-          <bean id="test1" class="com.my.Test1"/>
-       </property>
-   </bean>
-</beans>
-```
-
-#### 注入集合
-
-```xml
-<bean id="javaCollection" class="com.my.JavaCollection">
-
-      <!-- results in a setAddressList(java.util.List) call -->
-      <property name="addressList">
-         <list>
-            <value>INDIA</value>
-            <value>Pakistan</value>
-            <value>USA</value>
-            <value>USA</value>
-         </list>
-      </property>
-
-      <!-- results in a setAddressSet(java.util.Set) call -->
-      <property name="addressSet">
-         <set>
-            <value>INDIA</value>
-            <value>Pakistan</value>
-            <value>USA</value>
-            <value>USA</value>
-        </set>
-      </property>
-
-      <!-- results in a setAddressMap(java.util.Map) call -->
-      <property name="addressMap">
-         <map>
-            <entry key="1" value="INDIA"/>
-            <entry key="2" value="Pakistan"/>
-            <entry key="3" value="USA"/>
-            <entry key="4" value="USA"/>
-         </map>
-      </property>
-
-      <!-- results in a setAddressProp(java.util.Properties) call -->
-      <property name="addressProp">
-         <props>
-            <prop key="one">INDIA</prop>
-            <prop key="two">Pakistan</prop>
-            <prop key="three">USA</prop>
-            <prop key="four">USA</prop>
-         </props>
-      </property>
-
-   </bean>
-
-</beans>
-```
-
-### 自动装配
-
-#### 默认
-
-使用<constructor-arg>和<property>
-
-```xml
-<beans>
-   <bean id="TestBean" class="com.my.TestMy">
-      <property name="test1" ref="test1"/>
-      <property name="message" value="hello"/>
-   </bean>
-
-   <bean id="test1" class="com.my.Test1"/>
-</beans>
-```
-
-#### byName或byType
-
-```xml
-<beans>
-   <bean id="TestBean" class="com.my.TestMy" autowire="byName/byType">
-      <property name="message" value="hello"/>
-   </bean>
-
-   <bean id="test1" class="com.my.Test1"/>
-</beans>
-```
-
-#### 构造函数
-
-```xml
-<beans>
-   <bean id="TestBean" class="com.my.TestMy" autowire="constructor">
-      <constructor-arg value="hello"/>
-   </bean>
-
-   <bean id="test1" class="com.my.Test1"/>
-</beans>
 ```
 
 ## 基于注解配置
@@ -365,31 +169,43 @@ public class MainApp {
 
 ## AOP
 
-面向切面编程，通过对目标类织入切面，实现对其功能增强
+面向切面编程
 
-### 运行期
+将那些与业务无关的，被业务模块共同调用的逻辑或责任封装起来，减少代码的重复，提高扩展性和维护性
 
-> 常见的，如动态代理
+![img](https://img-blog.csdnimg.cn/20200520191206508.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDM5NTcwNw==,size_16,color_FFFFFF,t_70)
 
-### 编译期间
+### 实现方式
 
-> 需要特殊的编译器
+#### 静态代理
 
-### 类加载期间- LoadTimeWeaving
+##### 编译时编织
+
+> 特殊的编译器
+
+##### 类加载期间- LoadTimeWeaving
 
 > 在类的class文件未被jvm加载之前，通过自定义的类加载器或文件转换器，将功能织入目标类的class文件，再交给jvm加载
 
-|               |                                    |
-| ------------- | ---------------------------------- |
-| aspect        | 一组横切需求的执行方法             |
-| joinpoint     | 插入切面的点                       |
-| advice        | 具体执行的增强处理                 |
-| pointcut      | 切入一个类，所有方法都按需求走通知 |
-| introduction  |                                    |
-| target object |                                    |
-| weaving       | 增强添加到目标对象                 |
+#### 动态代理
 
-通知类型
+> 在运行时在内存中“临时”生成 AOP 动态代理类
+
+##### JDK动态代理
+
+##### CGLIB
+
+|               |                                    |      |
+| ------------- | ---------------------------------- | ---- |
+| aspect        | 切面 |  一组横切需求的执行方法    |
+| joinpoint     | 切点               | 程序运行中的一些时间点, 例如一个方法的执行, 或者是一个异常的处理 |
+| advice        | 通知                 | 特定 JoinPoint 处的 Aspect 所采取的动作 |
+| pointcut      |  | 切入一个类，所有方法都按需求走通知 |
+| introduction  |                                    |      |
+| target object |                                    |      |
+| weaving       | 增强添加到目标对象                 |      |
+
+### 有哪些通知类型（advice）
 
 |                |                 |                                |
 | -------------- | --------------- | ------------------------------ |
@@ -441,13 +257,117 @@ public class MainApp {
 
 ## spring事务管理
 
-### 编程式事务
+### 事务管理方式
 
-> 写入代码
+> 编程式事务：写入代码（不推荐）
+>
+> 声明式事务：使用注释或基于配置xml
 
-### 声明式事务
+### @Transaction注解可以放在哪些地方
 
-> 使用注释或基于配置xml
+#### 类
+
+> 1、表明该类下所有public方法都配置事务属性
+>
+> 2、protected、private修饰的方法上使用 @Transactional 注解，事务无效但不会有报错
+
+#### 方法
+
+> 1、表明该方法配置事务属性
+>
+> 2、会覆盖类上配置的事务属性
+
+### spring事务隔离级别
+
+基本同mysql，多了一个默认使用数据库
+
+#### isolation_default
+
+> 使用数据库默认隔离级别
+
+#### isolation_read_uncommitted
+
+> 读未提交
+
+#### isolation_read_committed
+
+> 读已提交
+
+#### isolation_repeatable_read
+
+> 可重复度
+
+#### isolation_serializable
+
+> 串行
+
+### spring事务传播机制
+
+#### 支持当前事务情况
+
+propagation_required
+
+> 如果当前存在事务，则加入该事务，如果不存在则创建一个
+
+propagation_supports
+
+>如果当前存在事务，则加入该事务，如果不存在则以非事务方式运行
+
+propagation_mandatory
+
+>如果当前存在事务，则加入该事务，如果不存在则抛异常
+
+#### 不支持当前事务情况
+
+propagation_requires_new
+
+> 创建一个事务，如果当前存在事务，则把当前事务挂起
+
+propagation_not_support
+
+>以非事务方式运行，如果当前存在事务，则把当前事务挂起
+
+propagation_never
+
+> 以非事务方式运行，如果当前存在事务，则抛出异常
+
+#### 其他情况
+
+propagation_nested
+
+> 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务运行，如果不存在，则等价于propagation_required
+
+### @Transaction失效的场景
+
+#### 配置在了非public修饰的方法上
+
+> 
+
+#### 注解属性 propagation 设置错误
+
+>TransactionDefinition.PROPAGATION_SUPPORTS：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行。
+>
+>TransactionDefinition.PROPAGATION_NOT_SUPPORTED：以非事务方式运行，如果当前存在事务，则把当前事务挂起。
+>
+>TransactionDefinition.PROPAGATION_NEVER：以非事务方式运行，如果当前存在事务，则抛出异常。
+
+#### rollbackFor指定异常类型，但是抛出的是别的异常
+
+>
+
+#### 同一个类中方法调用
+
+> 1、比如说一个类中A，B两个方法，A未配置事务，B配置了事务；外部调用A方法，A方法调用B方法，此时B的事务不会生效
+>
+> 2、事务方法被当前类以外的代码调用时，才会aop生成代理对象来管理，A方法虽然被外部调用，但是A方法没配置事务，也就无法传播到B
+
+#### 方法加了trycache，不抛出异常导致事务失效
+
+>
+
+#### 数据库引擎不支持事务
+
+>比如表设置了myisam引擎
 
 ## 三大器
 
@@ -582,3 +502,117 @@ public class LogCostFilter2 implements Filter {
 > 拦截器只能对action（也就是controller）请求起作用，而过滤器则可以对几乎所有的请求起作用，并且可以对请求的资源进行起作用
 >
 > 拦截器在action的生命周期可以被多次调用，过滤器只能在最开始调用一次
+
+## spring是如何解决循环依赖的
+
+>1、通过ApplicationContext.getBean，递归方式获取bean及其依赖的bean
+>
+>2、实例化bean时，分两步进行，首先实例化bean放入二级缓存，完成注入属性后再放入一级缓存
+>
+>
+>
+>对于依赖的class，会先从二级缓存中获取对象给递归上层，真正使用时从一级缓存中获取
+>
+>(待确认)
+
+
+
+![img](https://pic1.zhimg.com/80/v2-6fd43ded717a9c31b0a9abae0234db9b_720w.jpg?source=1940ef5c)
+
+## spring内部有三级缓存
+
+### singletonObjects
+
+> 一级缓存，用于保存实例化、注入、初始化完成的bean实例
+
+### earlySingletonObjects 
+
+> 二级缓存，用于保存实例化完成的bean实例
+
+### singletonFactories 
+
+> 三级缓存，用于保存bean创建工厂，以便于后面扩展有机会创建代理对象
+
+#### 单例setter注入
+
+```java
+@Service
+public class TestService1 {
+
+    @Autowired
+    private TestService2 testService2;
+
+    public void test1() {
+    }
+}
+
+@Service
+public class TestService2 {
+
+    @Autowired
+    private TestService1 testService1;
+
+    public void test2() {
+    }
+}
+```
+
+![img](https://pic2.zhimg.com/80/v2-1e7bd042df73e47bb951e70b298c96ca_720w.jpg?source=1940ef5c)
+
+
+
+![img](https://pic2.zhimg.com/80/v2-85b44d9fdb16b78e9af3690b929cbff2_720w.jpg?source=1940ef5c)
+
+### 生成代理对象产生的循环依赖
+
+> 使用`@Lazy`注解延迟加载
+>
+> 使用`@DependsOn`注解，指定加载先后顺序
+>
+> 修改文件名称，改变循环依赖类的加载顺序
+
+### 使用@DependsOn产生的循环依赖
+
+> 找到`@DependsOn`注解循环依赖的地方调整
+
+#### 多例循环依赖
+
+> 改为单例
+
+#### 构造器循环依赖
+
+> 使用`@Lazy`
+
+### 第三级缓存中为什么要添加`ObjectFactory`对象，直接保存实例对象不行吗？
+
+> 不行，因为假如你想对添加到三级缓存中的实例对象进行增强，直接用实例对象是行不通的
+
+## spring框架中用到了哪些设计模式
+
+> 工厂模式 		通过BeanFactory和ApplicationContext创建bean
+>
+> 单例模式 		bean默认都是单例
+>
+> 代理模式 		AOP的实现
+>
+> 适配器模式	
+
+## 将一个类声明为bean的注解有哪些？
+
+> @Compmant 通用注解，用于可标注任意类，如果bean不知道归属于那一层，可以使用
+>
+> @Service		对应服务层
+>
+> @Controller	对应控制层层
+>
+> @Repostory	对应持久层
+
+## Spring中的Singleton bean线程安全吗？
+
+> 不是
+
+## 哪些是重要的bean生命周期方法？可以覆盖它们吗
+
+> init-method 				@PostConstruct
+>
+> destroy-method		@PreDestroy

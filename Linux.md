@@ -2,7 +2,63 @@
 
 [TOC]
 
+## 内核参数调整
+
+### vm.overcommit_memory
+
+echo 'vm.overcommit_memory=1' >> /etc/sysctl.conf
+
+> 申请内存
+>
+> 0 - 检测内存是否足够，足够就分配，否则拒绝
+>
+> 1 - 可用内存都允许分配
+>
+> 2 - 
+>
+> 一般设置为1，保证内存申请
+
+### vm.max_map_count
+
+echo 'vm.max_map_count=655350' >> /etc/sysctl.conf
+
+> 允许开启的线程数，默认65535
+>
+> 一般需要调大，保证能开启足够多线程
+
+### vm.swappiness
+
+echo 'vm.swappiness=10' >> /etc/sysctl.conf
+
+> 控制进程swap行为，会把一部分磁盘空间作为swap区域，如果进程不活跃，会把os内数据写入磁盘，腾出内存空间
+>
+> 0 ~ 100 内存数据写到物理磁盘比例，默认为60
+>
+> 一般设置小一些，尽量使用内存，不要使用磁盘
+
+### ulimit
+
+echo 'ulimit -n 100000' >> /etc/profile
+
+> 最大文件句柄，默认1024
+>
+> 一般需要调大，读写磁盘或网络通信时都跟这个参数有关，采用默认值可能出现如下错误“too many open files”
+
 ## 命令
+
+#### top
+
+> 查看系统负载
+
+#### free
+
+> 查看内存使用率
+
+#### sar
+
+>sar -n DEV 1 2
+>
+>网卡读写
 
 #### sudo
 

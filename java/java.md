@@ -1,3 +1,5 @@
+
+
 # java
 
 [TOC]
@@ -26,39 +28,51 @@
 >
 >^：两个数转为二进制，然后从高位开始比较，如果相同则为0，不相同则为1
 
-### 类加载，双亲委派原则
+### 类加载及双亲委派原则
+
+![类加载过程](D:\note\Java\类加载过程.jpg)
 
 类加载过程：
 
-加载 - 读取文件堆中生成class对象
-
-验证 - 验证文件格式、符号引用等完整性
-
-准备 - 分配内存
-
-解析 - 常量池转化引用
-
-方法初始化 
-
-使用
+> 1、加载 - 读取文件堆中生成class对象
+>
+> 2、验证 - 验证文件格式、符号引用等完整性
+>
+> 3、准备 - 分配内存
+>
+> 4、解析 - 常量池转化引用
+>
+> 5、初始化
+>
+> 6、使用
+>
+> 7、卸载
 
 加载器：
 
-![img](java.assets/eaf81a4c510fd9f950e68758c03f2f2e2834a422.jpeg)g
+![img](java.assets/eaf81a4c510fd9f950e68758c03f2f2e2834a422.jpeg)
 
 
-
-|      |      |      |      |
-| ---- | ---- | ---- | ---- |
-|      |      |      |      |
-|      |      |      |      |
-|      |      |      |      |
 
 双亲委派原则：
 
 类首先交给父类加载器加载，父类无法完成再由子类加载
 
 为了保证最后得到的都是同一个对象
+
+#### 父类子类加载顺序
+
+父类静态 - 子类静态 - 父类构造 - 子类构造
+
+> 1. 若存在继承关系，而且父类和子类中都存在静态代码块、静态变量、构造代码块、构造方法
+>
+> 2. 先是父类静态代码块和静态变量，静态代码块和静态变量的初始化顺序 是谁在前谁先加载
+>
+> 3. 再是子类静态代码块和静态变量，静态代码块和静态变量的初始化顺序 是谁在前谁先加载
+>
+> 4. 再是父类构造代码块，父类构造方法
+>
+> 5. 再是子类构造代码块，父类构造方法
 
 ### 泛型
 
@@ -93,11 +107,13 @@ public interface TestInterface {
 
 ### 对象初始化顺序
 
-> 静态代码块 构造语句块 构造函数
+> 静态代码块=>非静态代码块=>构造方法
+>
+> 父子关系：父类静态代码块=>子类静态代码块=>父类非静态代码块=>父类构造函数=>子类非静态代码块=>子类构造函数
 
 ### 抽象类和接口
 
-> sdf
+> 
 
 ### 序列化
 
@@ -111,11 +127,12 @@ public interface TestInterface {
 > - 增加writeObject、readObject<u>**私有**</u>方法
 > - 使用Externalizable实现
 >
-> | 方式                   | 过程                                | 特征                                  |
-> | ---------------------- | ----------------------------------- | ------------------------------------- |
-> | 实现Serializable接口   | 自动序列化                          | transient关键字修饰的变量不会被序列化 |
-> | 实现Externalizable接口 | 重写writeExternal、readExternal方法 |                                       |
->
+> | 方式                   | 过程                                                         | 特征                                                         |
+> | ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+> | 实现Serializable接口   | 自动序列化                                                   | transient关键字修饰的变量不会被序列化（敏感信息安全）        |
+> | 实现Externalizable接口 | 重写writeExternal、readExternal方法                          |                                                              |
+> | JSON序列化             | 将数据对象转化成JSON字符串                                   | 可读性比较好，方便调试                                       |
+> | Hessian序列化          | 把复杂对象所有属性存储在一个 Map中进行序列化，先序列化子类 ，然后序列化父类 | 在父类、子类存在同名成员变量的情况下，反序列化结果会导致子类同名成员变量被父类的值覆盖 |
 
 ### skipList
 
@@ -124,6 +141,235 @@ public interface TestInterface {
 >2、可以用类二分法查找，加快速度
 
 [![img](java.assets/30222128-045c88b7e992443395a540ba2eb740f3.jpg)](https://images0.cnblogs.com/blog/497634/201312/30222128-045c88b7e992443395a540ba2eb740f3.jpg)
+
+## 代理
+
+![img](https://img2020.cnblogs.com/blog/660329/202005/660329-20200522233927882-1672053736.png)
+
+### 静态代理
+
+> 设计模式中的代理模式
+
+#### 优点
+
+>通过代理访问无法访问的资源，扩展接口的功能
+
+#### 缺点
+
+> 系统类规模会增大，结构臃肿
+
+#### 例子
+
+定义一个抽象父类或接口
+
+```java
+abstract class Subject {
+    public abstract void Request();
+}
+```
+
+真正的实体
+
+```java
+class RealSubject extends Subject {
+    @Override
+    public void Request() {
+        System.out.println("真实的请求");
+    }
+}
+```
+
+通过代理proxy来访问RealSubject
+
+```java
+class Proxy extends Subject {
+    private RealSubject real;
+
+    @Override
+    public void Request() {
+        if (null == real) {
+            real = new RealSubject();
+        }
+        real.Request();
+    }
+}
+```
+
+### 动态代理
+
+#### JDK动态代理
+
+> 利用反射机制生成一个代理接口的匿名内部类，需要实现InvocationHandler（负责统一管理所有方法的调用）
+
+##### 步骤
+
+> 1、获取RealSubject上所有接口列表
+>
+> 2、确定要生成的代理类名，默认：com.sun.proxy.$ProxyXXX;
+>
+> 3、根据需要实现的接口信息，在代码中动态创建Proxy字节码
+>
+> 4、对应字节码转换成class对象
+>
+> 5、创建InvocationHandler实现handler，实例化一个proxy对象
+
+##### 优缺点
+
+> 创建效率较高，执行效率较低
+
+##### 例子
+
+```java
+public interface Subject {
+    void hello(String str);
+    String bye();
+}
+```
+
+```java
+public class RealSubject implements Subject {
+
+    @Override
+    public void hello(String str) {
+        System.out.println("Hello  " + str);
+    }
+
+    @Override
+    public String bye() {
+        System.out.println("Goodbye");
+        return "Over";
+    }
+}
+```
+
+```java
+public class InvocationHandlerDemo implements InvocationHandler {
+    // 这个就是我们要代理的真实对象
+    private Object subject;
+
+    // 构造方法，给我们要代理的真实对象赋初值
+    public InvocationHandlerDemo(Object subject) {
+        this.subject = subject;
+    }
+
+    @Override
+    public Object invoke(Object object, Method method, Object[] args)
+        throws Throwable {
+        // 在代理真实对象前我们可以添加一些自己的操作
+        System.out.println("Before method");
+
+        System.out.println("Call Method: " + method);
+
+        // 当代理对象调用真实对象的方法时，其会自动的跳转到代理对象关联的handler对象的invoke方法来进行调用
+        Object obj = method.invoke(subject, args);
+
+        // 在代理真实对象后我们也可以添加一些自己的操作
+        System.out.println("After method");
+        System.out.println();
+
+        return obj;
+    }
+}
+```
+
+```java
+public class Client {
+    public static void main(String[] args) {
+        // 我们要代理的真实对象
+        Subject realSubject = new RealSubject();
+
+        // 我们要代理哪个真实对象，就将该对象传进去，最后是通过该真实对象来调用其方法的
+        InvocationHandler handler = new InvocationHandlerDemo(realSubject);
+
+        /*
+         * 通过Proxy的newProxyInstance方法来创建我们的代理对象，我们来看看其三个参数
+         * 第一个参数 handler.getClass().getClassLoader() ，我们这里使用handler这个类的ClassLoader对象来加载我们的代理对象
+         * 第二个参数realSubject.getClass().getInterfaces()，我们这里为代理对象提供的接口是真实对象所实行的接口，表示我要代理的是该真实对象，这样我就能调用这组接口中的方法了
+         * 第三个参数handler， 我们这里将这个代理对象关联到了上方的 InvocationHandler 这个对象上
+         */
+        Subject subject = (Subject)Proxy.newProxyInstance(handler.getClass().getClassLoader(), realSubject
+                .getClass().getInterfaces(), handler);
+
+        System.out.println(subject.getClass().getName());
+        subject.hello("World");
+        String result = subject.bye();
+        System.out.println("Result is: " + result);
+    }
+}
+```
+
+
+
+#### CGlib
+
+> 利用开源包，将代理对象的class文件加载，修改其字节码生成子类来处理
+
+##### 优缺点
+
+> 创建效率低，执行效率高
+
+##### 例子
+
+依赖
+
+```xml
+<dependency>
+    <groupId>cglib</groupId>
+    <artifactId>cglib</artifactId>
+    <version>3.1</version>
+</dependency>
+```
+
+目标类
+
+```java
+public class Dog{
+    
+    final public void run(String name) {
+        System.out.println("狗"+name+"----run");
+    }
+    
+    public void eat() {
+        System.out.println("狗----eat");
+    }
+}
+```
+
+拦截器
+
+```java
+public class MyMethodInterceptor implements MethodInterceptor {
+
+    @Override
+    public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+        System.out.println("这里是对目标类进行增强！！！");
+        //注意这里的方法调用，不是用反射哦！！！
+        Object object = proxy.invokeSuper(obj, args);
+        return object;
+    }  
+}
+```
+
+```java
+public class CgLibProxy {
+    public static void main(String[] args) {
+        //在指定目录下生成动态代理类，我们可以反编译看一下里面到底是一些什么东西
+        //System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, "D:\\java\\java_workspace");
+        
+        //创建Enhancer对象，类似于JDK动态代理的Proxy类，下一步就是设置几个参数
+        Enhancer enhancer = new Enhancer();
+        //设置目标类的字节码文件
+        enhancer.setSuperclass(Dog.class);
+        //设置回调函数
+        enhancer.setCallback(new MyMethodInterceptor());
+        
+        //这里的creat方法就是正式创建代理类
+        Dog proxyDog = (Dog)enhancer.create();
+        //调用代理类的eat方法
+        proxyDog.eat();       
+    }
+}
+```
 
 ## 多线程
 
@@ -216,6 +462,26 @@ public String doTask() {
   return futureTask.get();
 }
 ```
+
+### 多核处理器线程调度
+
+#### reactor类
+
+> 1、一个处理器处理所有调度决定，其他处理器负责执行
+
+#### SMP - 对称多处理
+
+> 每个处理器自我调度，所有进程处于同一个就绪的队列中，每个处理器有私有的进行队列
+
+##### 负载平衡
+
+###### 推迁移
+
+> 周期性检查每个处理的负载，如果不平衡，将进程从超载的处理器推到低负载的处理器执行
+
+###### 拉迁移
+
+> 空闲的处理器从忙的处理器上拉一个等待任务
 
 ### Thread调用start()和run()有什么区别？
 
@@ -478,11 +744,45 @@ Excutor里的创建方法固定参数比如maximumPoolSize=Integer.MAX_VALUE、L
 
 
 
+## ArrayList在循环过程中删除
 
+> 正向遍历删除，元素会往前移动，容易漏删，可以使用反向遍历删除
 
+```java
+for (int i = 0; i < list.size(); i++) {
+			String s = list.get(i);
+			if (s.equals("bb")) {
+				list.remove(s);
+			}
+		}
 
+```
 
+> 用Iterator循环删除的时候，调用的是ArrayList里面的remove方法，删除元素后modCount会增加，expectedModCount则不变，这样就造成了expectedModCount ！= modCount，那么就抛出异常了
 
+```java
+for (String s : list) {
+			if (s.equals("bb")) {
+				list.remove(s);
+			}
+		}
+```
+
+> 使用迭代器，iterator.remove()来避免这种情况，删除方法中有expectedModCount = modCount
+
+```java
+Iterator<String> iterator = list.iterator();  
+    while (iterator.hasNext()) {  
+        String s = iterator.next();  
+        if (s.equals("bb")) {  
+            iterator.remove();  
+        }  
+    }  
+```
+
+## 并发问题解决方式
+
+> ![image-20210618182356705](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20210618182356705.png)
 
 
 

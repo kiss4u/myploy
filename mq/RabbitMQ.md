@@ -42,7 +42,7 @@
 
 #### 不可达消息
 
-> mandatory参数，设置true，为找到符合条件的队列会将消息返回给生产者；设置false，消息会直接丢弃
+> mandatory参数，设置true，未找到符合条件的队列会将消息返回给生产者；设置false，消息会直接丢弃
 
 ### TTL
 
@@ -70,4 +70,30 @@
 
 ##### 3、队列达到最大长度
 
-> 
+
+
+### Exchange类型
+
+#### Direct
+
+> 可以不用指定routing key，在此Exchange下创建的queue默认routing key等同于队列名
+
+![img](https://img-blog.csdn.net/20160820183903987?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+
+#### Fanout
+
+> 会忽略routing key，发送到exchange下所有队列中
+
+![img](https://img-blog.csdn.net/20160820184622496?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+
+#### Topic
+
+>根据routing key 路由到响应queue
+
+![img](https://img-blog.csdn.net/20160820184744544?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+
+#### Header
+
+>
+
+![img](https://img-blog.csdn.net/20160820184114896?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
